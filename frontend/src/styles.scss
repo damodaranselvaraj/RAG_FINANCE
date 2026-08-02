@@ -1,0 +1,19 @@
+/* Global styles */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: #e9ebf4;
+  color: #1f2430;
+}
+
+.app-shell {
+  height: 100vh;
+  padding: 24px;
+  display: flex;
+}

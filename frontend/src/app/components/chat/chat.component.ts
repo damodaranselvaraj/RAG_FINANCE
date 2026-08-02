@@ -1,0 +1,109 @@
+import { Component, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
+import { ChatMessage } from '../../models/chat-message.model';
+import { ChatService } from '../../services/chat.service';
+
+@Component({
+  selector: 'app-chat',
+  templateUrl: './chat.component.html',
+  styleUrls: ['./chat.component.scss']
+})
+export class ChatComponent implements AfterViewChecked {
+  /** The conversation transcript rendered in the UI. */
+  messages: ChatMessage[] = [
+    {
+      id: this.newId(),
+      role: 'assistant',
+      text: "Hi! I'm your HR Policy Assistant. Ask me anything about leave, benefits, working hours, or company policies.",
+      timestamp: new Date(),
+      status: 'done'
+    }
+  ];
+
+  /** Two-way bound to the input box. */
+  draft = '';
+
+  /** True while we're waiting for an answer. */
+  isThinking = false;
+
+  @ViewChild('scrollAnchor') private scrollAnchor?: ElementRef<HTMLDivElement>;
+  private shouldScroll = false;
+
+  /** Suggested prompts shown when the conversation is fresh. */
+  readonly suggestions = [
+    'How many annual leave days do I get?',
+    'What is the remote work policy?',
+    'How do I claim medical reimbursement?',
+    'What are the working hours?'
+  ];
+
+  constructor(private chat: ChatService) {}
+
+  ngAfterViewChecked(): void {
+    if (this.shouldScroll) {
+      this.scrollAnchor?.nativeElement.scrollIntoView({ behavior: 'smooth' });
+      this.shouldScroll = false;
+    }
+  }
+
+  useSuggestion(text: string): void {
+    this.draft = text;
+    this.send();
+  }
+
+  /** Handle the send action from the input box. */
+  send(): void {
+    const query = this.draft.trim();
+    if (!query || this.isThinking) {
+      return;
+    }
+
+    this.pushMessage({
+      id: this.newId(),
+      role: 'user',
+      text: query,
+      timestamp: new Date(),
+      status: 'done'
+    });
+
+    this.draft = '';
+    this.isThinking = true;
+
+    // Call the RAG backend: the query is embedded and matched against the
+    // ChromaDB vector store, and the grounded answer + citations come back.
+    this.chat.ask({ query }).subscribe({
+      next: (response) => {
+        this.pushMessage({
+          id: this.newId(),
+          role: 'assistant',
+          text: response.answer,
+          timestamp: new Date(),
+          status: 'done',
+          sources: response.sources
+        });
+        this.isThinking = false;
+      },
+      error: (err) => {
+        this.pushMessage({
+          id: this.newId(),
+          role: 'assistant',
+          text:
+            'Sorry — I could not reach the policy service. Please make sure ' +
+            'the backend is running, then try again.',
+          timestamp: new Date(),
+          status: 'error'
+        });
+        this.isThinking = false;
+        console.error('Chat request failed', err);
+      }
+    });
+  }
+
+  private pushMessage(message: ChatMessage): void {
+    this.messages.push(message);
+    this.shouldScroll = true;
+  }
+
+  private newId(): string {
+    return `${this.messages?.length ?? 0}-${Math.floor(Math.random() * 1e9)}`;
+  }
+}
