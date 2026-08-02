@@ -15,10 +15,6 @@
 >    10%-weighted "code quality / app usability" component, but confirm it's an acceptable
 >    substitution for the stated course rule before investing the build time — this doc keeps
 >    Angular per your instruction, but flags the risk.
-> 2. **Out-of-scope test.** `REQUIREMENTS_OVERVIEW.md` requires every group to have "a defined
->    out-of-scope test (a competitor, a different persona, or a request needing live account
->    access) that the bot must correctly decline." Your group's `REQUIREMENT.md` doesn't name one
->    explicitly — §2.9 below proposes candidates to add as acceptance test #6.
 
 ## 1. High-Level System Overview
 
