@@ -1,2 +1,2 @@
 # RAG_FINANCE
-REAG Pipeline for finance data
+RAG Pipeline for finance data
