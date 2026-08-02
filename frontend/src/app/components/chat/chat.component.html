@@ -36,6 +36,24 @@
           </a>
         </div>
       </div>
+
+      <!-- Token usage + latency for assistant answers -->
+      <div class="msg__metrics" *ngIf="msg.metrics as m">
+        <span class="metric" title="Input (prompt) tokens">
+          <span class="metric__icon">▲</span>
+          <span class="metric__value">{{ m.inputTokens }}</span> in
+        </span>
+        <span class="metric" title="Output (response) tokens">
+          <span class="metric__icon">▼</span>
+          <span class="metric__value">{{ m.outputTokens }}</span> out
+        </span>
+        <span class="metric" title="Response time">
+          <span class="metric__icon">⏱</span>
+          <span class="metric__value">{{ formatDuration(m.responseTimeMs) }}</span>
+        </span>
+        <span class="metric metric--est" *ngIf="m.estimated" title="Token counts estimated client-side">~est</span>
+      </div>
+
       <span class="msg__time">{{ msg.timestamp | date: 'shortTime' }}</span>
     </div>
 

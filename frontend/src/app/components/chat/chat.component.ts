@@ -68,17 +68,34 @@ export class ChatComponent implements AfterViewChecked {
     this.draft = '';
     this.isThinking = true;
 
+    // Start the latency clock as close to the request as possible.
+    const startedAt = performance.now();
+
     // Call the RAG backend: the query is embedded and matched against the
     // ChromaDB vector store, and the grounded answer + citations come back.
     this.chat.ask({ query }).subscribe({
       next: (response) => {
+        const responseTimeMs = Math.round(performance.now() - startedAt);
+
+        // Prefer token counts reported by the backend; fall back to a
+        // character-based estimate so the UI always has something to show.
+        const backendIn = response.usage?.inputTokens;
+        const backendOut = response.usage?.outputTokens;
+        const estimated = backendIn == null || backendOut == null;
+
         this.pushMessage({
           id: this.newId(),
           role: 'assistant',
           text: response.answer,
           timestamp: new Date(),
           status: 'done',
-          sources: response.sources
+          sources: response.sources,
+          metrics: {
+            inputTokens: backendIn ?? this.estimateTokens(query),
+            outputTokens: backendOut ?? this.estimateTokens(response.answer),
+            responseTimeMs,
+            estimated
+          }
         });
         this.isThinking = false;
       },
@@ -105,5 +122,21 @@ export class ChatComponent implements AfterViewChecked {
 
   private newId(): string {
     return `${this.messages?.length ?? 0}-${Math.floor(Math.random() * 1e9)}`;
+  }
+
+  /**
+   * Rough token estimate used when the backend doesn't report usage.
+   * Uses the common ~4-characters-per-token heuristic for English text.
+   */
+  private estimateTokens(text: string): number {
+    if (!text) {
+      return 0;
+    }
+    return Math.max(1, Math.ceil(text.trim().length / 4));
+  }
+
+  /** Human-friendly latency label, e.g. "820 ms" or "1.4 s". */
+  formatDuration(ms: number): string {
+    return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
   }
 }

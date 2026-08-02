@@ -22,6 +22,18 @@ export interface Source {
   score?: number;
 }
 
+/** Token usage + latency metrics surfaced alongside an assistant answer. */
+export interface ChatMetrics {
+  /** Tokens in the user prompt sent to the model. */
+  inputTokens: number;
+  /** Tokens in the model's response. */
+  outputTokens: number;
+  /** Wall-clock time from request to response, in milliseconds. */
+  responseTimeMs: number;
+  /** True when token counts are estimated client-side rather than reported by the backend. */
+  estimated: boolean;
+}
+
 export interface ChatMessage {
   id: string;
   role: MessageRole;
@@ -30,6 +42,8 @@ export interface ChatMessage {
   status: MessageStatus;
   /** Grounding citations returned by the RAG pipeline (assistant messages only). */
   sources?: Source[];
+  /** Token usage + latency, shown under assistant messages when available. */
+  metrics?: ChatMetrics;
 }
 
 /** Request payload sent to the RAG backend. */
@@ -39,8 +53,18 @@ export interface ChatRequest {
   history?: { role: MessageRole; text: string }[];
 }
 
+/** Token accounting the backend may report for a turn. */
+export interface TokenUsage {
+  /** Prompt / input tokens. */
+  inputTokens?: number;
+  /** Completion / output tokens. */
+  outputTokens?: number;
+}
+
 /** Response payload returned by the RAG backend. */
 export interface ChatResponse {
   answer: string;
   sources?: Source[];
+  /** Token usage reported by the backend, when available. */
+  usage?: TokenUsage;
 }
