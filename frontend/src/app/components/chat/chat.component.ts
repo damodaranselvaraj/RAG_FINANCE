@@ -13,7 +13,7 @@ export class ChatComponent implements AfterViewChecked {
     {
       id: this.newId(),
       role: 'assistant',
-      text: "Hi! I'm your HR Policy Assistant. Ask me anything about leave, benefits, working hours, or company policies.",
+      text: "Hi! I'm your Finance Assistant. Ask me anything about leave, benefits, working hours, or company policies.",
       timestamp: new Date(),
       status: 'done'
     }
