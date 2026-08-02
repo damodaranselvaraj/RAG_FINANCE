@@ -1,0 +1,1 @@
+# Code to access pinecone db and store embeddings by Damodharan
