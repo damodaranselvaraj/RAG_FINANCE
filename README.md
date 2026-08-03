@@ -161,17 +161,25 @@ Place these files in `backend/data/` before running ingestion. They are not comm
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.11 (tested on 3.11.9)
 - Node.js 18+ and npm (for Angular frontend)
 - Docker + Docker Compose (optional, for containerised run)
 
-### Step 1 — Clone and copy environment variables
+### Step 1 — Clone and create virtual environment
 
 ```bash
 git clone <repo-url>
 cd RAG_FINANCE
+python -m venv .venv
+source .venv/bin/activate   # macOS/Linux
+# .venv\Scripts\activate    # Windows
+```
+
+### Step 2 — Copy and fill environment variables
+
+```bash
 cp .env.example .env
-# Edit .env and fill in all API keys (see table below)
+# Edit .env and fill in the values below
 ```
 
 ### Required Environment Variables
@@ -196,14 +204,17 @@ cp .env.example .env
 | `API_PORT` | FastAPI port (e.g. `8000`) |
 | `SQLITE_DB_PATH` | Path to SQLite database file (e.g. `./backend.db`) |
 
-### Step 2 — Install backend dependencies
+> **Note:** There is no `API_KEY` variable — this is a combined POC project and does not use API-key-based authentication on the gateway endpoints.
+
+### Step 3 — Install backend dependencies
 
 ```bash
-cd backend
 pip install -r requirements.txt
 ```
 
-### Step 3 — Install frontend dependencies
+The `requirements.txt` lives at the repo root. It covers all layers (API, ingestion, retrieval, orchestration, evaluation, dev tools).
+
+### Step 4 — Install frontend dependencies
 
 ```bash
 cd frontend
@@ -238,6 +249,55 @@ cd frontend
 ng serve
 ```
 
+### API Endpoints (implemented)
+
+The FastAPI gateway layer is fully wired with Pydantic validation, CORS, correlation-ID middleware, and structured error handling. No API-key authentication is applied (POC mode).
+
+| Method | Path | Status | Description |
+|---|---|---|---|
+| `POST` | `/chat` | ✅ Implemented (stub pipeline) | Accepts `{user_id, session_id, query}`, returns structured `ChatResponse` with answer, citations, guardrail verdict, route, and token usage |
+| `GET` | `/chat/history/{session_id}` | ✅ Implemented (stub) | Returns conversation history for a session |
+| `POST` | `/ingest` | ✅ Implemented (stub) | Triggers document ingestion pipeline |
+| `GET` | `/users/{user_id}/profile` | ✅ Implemented (stub) | Returns user profile / intent store |
+| `GET` | `/health` | ✅ Implemented | Liveness probe with uptime |
+| `GET` | `/metrics` | ✅ Implemented (stub) | Runtime counters |
+
+#### Request / Response schemas
+
+**`POST /chat` request body:**
+```json
+{
+  "user_id": "u1",
+  "session_id": "s1",
+  "query": "Can a bank deny me credit because of my age?"
+}
+```
+
+**`POST /chat` response:**
+```json
+{
+  "user_id": "u1",
+  "session_id": "s1",
+  "answer": "...",
+  "citations": [{"source_doc": "...", "law": "ECOA/RegB", "section": "...", "chunk_id": "..."}],
+  "guardrail": {"action": "allow", "reason": null, "citations_present": true, "violations": []},
+  "route": "legal",
+  "token_usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
+}
+```
+
+#### Quick test
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Chat (returns stub response until retrieval + LLM layers are wired)
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"user_id":"u1","session_id":"s1","query":"Can a bank deny me credit because of my age?"}'
+```
+
 ---
 
 ## 8. Running Data Ingestion
@@ -251,11 +311,12 @@ cd backend
 python -m ingestion.ingest_embed
 ```
 
-### Trigger via API (admin endpoint)
+### Trigger via API
 
 ```bash
 curl -X POST http://localhost:8000/ingest \
-  -H "Authorization: Bearer <admin-token>"
+  -H "Content-Type: application/json" \
+  -d '{"force_reingest": false}'
 ```
 
 Ingestion is **idempotent** — chunks are deduplicated by `content_hash`. Re-running does not create duplicate vectors.
@@ -418,7 +479,7 @@ pytest backend/evaluation/acceptance_tests.py::test_ecoa_age_mortgage -v
                             │ REST / SSE
 ┌──────────────────────────▼───────────────────────────────────┐
 │                    FASTAPI GATEWAY LAYER                       │
-│  Auth · Rate limiting · Pydantic schemas · Routing            │
+│  Pydantic validation · CORS · Correlation IDs · Routing       │
 └──────────────────────────┬───────────────────────────────────┘
                             │
 ┌──────────────────────────▼───────────────────────────────────┐
