@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Ensure the RAG_FINANCE root (where config.py lives) is on the path.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+import config
 from anthropic import Anthropic
 
 from summarization.prompt import SUMMARY_PROMPT
@@ -8,7 +15,7 @@ class ClaudeSummarizer:
     def __init__(
         self,
         api_key: str,
-        model: str = "claude-sonnet-5"
+        model: str = config.LLM_MODEL,
     ):
 
         self.client = Anthropic(api_key=api_key)
@@ -27,7 +34,7 @@ class ClaudeSummarizer:
 
         response = self.client.messages.create(
             model=self.model,
-            max_tokens=400,
+            max_tokens=config.SUMMARIZER_MAX_TOKENS,
             temperature=0,
             messages=[
                 {
