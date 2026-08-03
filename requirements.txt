@@ -29,9 +29,12 @@ pypdf==5.5.0
 pdfplumber==0.11.6
 pymupdf==1.25.5
 
-# Chunking (Stage 2)
-langchain-text-splitters==1.1.2
+# Chunking (Stage 2) — LlamaIndex node parsers
+llama-index-core==0.14.23
+llama-index-embeddings-huggingface==0.7.0
+llama-index-embeddings-openai==0.6.0
 tiktoken==0.9.0
+python-dotenv==1.2.2
 
 # Sparse index — BM25 (Stage 5)
 rank-bm25==0.2.2
