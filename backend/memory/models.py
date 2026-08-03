@@ -6,7 +6,7 @@ from sqlalchemy import DateTime
 
 from datetime import datetime
 
-from .database import Base
+from .db import Base
 
 
 class Conversation(Base):

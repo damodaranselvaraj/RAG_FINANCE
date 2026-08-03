@@ -1,4 +1,4 @@
-from .database import engine
+from .db import engine
 from .models import Base
 
 
