@@ -9,10 +9,14 @@ from .models import Session
 class SessionRepository(BaseRepository):
     """All SQLite reads/writes for the ``session`` table."""
 
-    def create(self, title: str = "New Chat") -> str:
-        """Insert a new chat session and return its id."""
+    def create(self, title: str = "New Chat", session_id: str | None = None) -> str:
+        """Insert a new chat session and return its id.
 
-        session_id = uuid4().hex
+        If *session_id* is provided (e.g. client-generated UUID) it is used
+        as-is; otherwise a new UUID is generated server-side.
+        """
+
+        session_id = session_id or uuid4().hex
 
         with self._write() as db:
 

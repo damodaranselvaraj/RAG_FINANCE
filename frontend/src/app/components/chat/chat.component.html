@@ -3,8 +3,8 @@
   <header class="chat__header">
     <div class="chat__avatar">FI</div>
     <div class="chat__titles">
-      <h1 class="chat__title">Finance Assistant</h1>
-      <span class="chat__subtitle">Ask about leave, benefits, working hours &amp; more</span>
+      <h1 class="chat__title">Financial Regulations & Consumer Rights Assistant</h1>
+      <span class="chat__subtitle">Ask about U.S. financial regulations, consumer rights, and fair lending.</span>
     </div>
     <span class="chat__badge" [class.chat__badge--busy]="isThinking">
       {{ isThinking ? 'Thinking…' : 'Online' }}
@@ -81,6 +81,14 @@
 
   <!-- Input -->
   <form class="chat__input" (ngSubmit)="send()">
+    <button
+      type="button"
+      class="chat__new-chat"
+      (click)="newChat()"
+      [disabled]="isThinking"
+      title="New Chat"
+      aria-label="New Chat"
+    >+</button>
     <input
       type="text"
       name="draft"

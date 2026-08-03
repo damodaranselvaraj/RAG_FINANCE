@@ -7,6 +7,20 @@ from datetime import datetime
 from typing import Literal
 from pydantic import BaseModel, Field
 
+# ---------------------------------------------------------------------------
+# POST /sessions
+# ---------------------------------------------------------------------------
+
+class SessionCreateRequest(BaseModel):
+    title: str = Field(default="New Chat", description="Human-readable session title")
+
+
+class SessionCreateResponse(BaseModel):
+    session_id: str
+    title: str
+    created_at: datetime
+
+
 
 # ---------------------------------------------------------------------------
 # Request
@@ -14,7 +28,8 @@ from pydantic import BaseModel, Field
 
 class ChatRequest(BaseModel):
     user_id: str = Field(..., description="Client-generated user identifier")
-    session_id: str = Field(..., description="Client-generated session identifier")
+    session_id: str = Field(..., description="Session identifier returned by POST /sessions")
+    role: Literal["user", "assistant", "system"] = Field(default="user", description="Role of the message sender")
     query: str = Field(..., min_length=1, max_length=4096, description="User query text")
 
 
@@ -66,3 +81,5 @@ class MessageRecord(BaseModel):
 class ChatHistoryResponse(BaseModel):
     session_id: str
     messages: list[MessageRecord]
+
+

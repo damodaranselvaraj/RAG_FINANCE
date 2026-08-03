@@ -17,6 +17,7 @@ import { ChatRequest, ChatResponse } from '../models/chat-message.model';
 @Injectable({ providedIn: 'root' })
 export class ChatService {
   private readonly chatUrl = `${environment.apiUrl}/chat`;
+  private readonly sessionsUrl = `${environment.apiUrl}/chat/sessions`;
 
   constructor(private http: HttpClient) {}
 
@@ -25,6 +26,14 @@ export class ChatService {
       return this.mockResponse(request).pipe(delay(600));
     }
     return this.http.post<ChatResponse>(this.chatUrl, request);
+  }
+
+  /** Create a new chat session on the backend and return its session_id. */
+  newSession(title: string = 'New Chat'): Observable<{ session_id: string; title: string; created_at: string }> {
+    if (environment.useMock) {
+      return of({ session_id: `mock-${Date.now()}`, title, created_at: new Date().toISOString() }).pipe(delay(200));
+    }
+    return this.http.post<{ session_id: string; title: string; created_at: string }>(this.sessionsUrl, { title });
   }
 
   private mockResponse(request: ChatRequest): Observable<ChatResponse> {

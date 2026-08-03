@@ -27,6 +27,8 @@ from api.schemas.chat import (
     Citation,
     GuardrailVerdict,
     MessageRecord,
+    SessionCreateRequest,
+    SessionCreateResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -138,9 +140,13 @@ async def chat(
     outbound_verdict = GuardrailVerdict(action="allow", citations_present=False)
 
     # ------------------------------------------------------------------
-    # Step 7 — Persist turn to SQLite (stub)
-    # Replace with memory.db session + message inserts.
+    # Step 7 — Persist turn to SQLite via MemoryService
     # ------------------------------------------------------------------
+    from memory.memory_service import MemoryService
+    memory = MemoryService()
+    memory.save_message(session_id=body.session_id, role=body.role, message=body.query, user_id=body.user_id)
+    memory.save_message(session_id=body.session_id, role="assistant", message=answer, user_id=body.user_id)
+
     logger.info("chat response user=%s session=%s req_id=%s route=%s",
                 body.user_id, body.session_id, req_id, route)
 
@@ -152,6 +158,41 @@ async def chat(
         guardrail=outbound_verdict,
         route=route,   # type: ignore[arg-type]
         token_usage=token_usage,
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /sessions
+# ---------------------------------------------------------------------------
+
+@router.post(
+    "/sessions",
+    response_model=SessionCreateResponse,
+    summary="Create a new chat session",
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_session(
+    body: SessionCreateRequest,
+    request: Request,
+    settings: Settings = Depends(get_settings),
+) -> SessionCreateResponse:
+    """
+    Creates a new chat session. The session_id is generated server-side by
+    MemoryService and returned in the response — the UI does not need to supply one.
+    """
+    req_id = _request_id(request)
+
+    from memory.memory_service import MemoryService
+    memory = MemoryService()
+    session_id = memory.create_session(title=body.title)
+
+    logger.info("create_session req_id=%s session_id=%s title=%r",
+                req_id, session_id, body.title)
+
+    return SessionCreateResponse(
+        session_id=session_id,
+        title=body.title,
+        created_at=datetime.now(timezone.utc),
     )
 
 

@@ -13,7 +13,7 @@ export class ChatComponent implements AfterViewChecked {
     {
       id: this.newId(),
       role: 'assistant',
-      text: "Hi! I'm your Finance Assistant. Ask me anything about leave, benefits, working hours, or company policies.",
+      text: "Hi! I'm your Financial Regulations & Consumer Rights Assistant. Ask me about U.S. financial regulations, consumer rights, and fair lending.",
       timestamp: new Date(),
       status: 'done'
     }
@@ -30,10 +30,10 @@ export class ChatComponent implements AfterViewChecked {
 
   /** Suggested prompts shown when the conversation is fresh. */
   readonly suggestions = [
-    'How many annual leave days do I get?',
-    'What is the remote work policy?',
-    'How do I claim medical reimbursement?',
-    'What are the working hours?'
+    'Who is protected under ECOA?',
+    'What is consumer credit?',
+    'How do banks ensure fair lending compliance?',
+    'What is fair lending?'
   ];
 
   constructor(private chat: ChatService) {}
@@ -43,6 +43,26 @@ export class ChatComponent implements AfterViewChecked {
       this.scrollAnchor?.nativeElement.scrollIntoView({ behavior: 'smooth' });
       this.shouldScroll = false;
     }
+  }
+
+  /** Reset the conversation and create a fresh session on the backend. */
+  newChat(): void {
+    this.chat.newSession().subscribe({
+      next: () => {
+        this.messages = [
+          {
+            id: this.newId(),
+            role: 'assistant',
+            text: "Hi! I'm your Financial Regulations & Consumer Rights Assistant. Ask me about U.S. financial regulations, consumer rights, and fair lending.",
+            timestamp: new Date(),
+            status: 'done'
+          }
+        ];
+        this.draft = '';
+        this.isThinking = false;
+      },
+      error: (err) => console.error('Failed to create new session', err)
+    });
   }
 
   useSuggestion(text: string): void {

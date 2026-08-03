@@ -22,16 +22,18 @@ class MemoryService:
 
     def create_session(
         self,
-        title: str = "New Chat"
+        title: str = "New Chat",
     ) -> str:
+        """Create a new session row in the repository and return the generated session id."""
 
-        return self.sessions.create(title)
+        return self.sessions.create(title=title)
 
     def save_message(
         self,
         session_id: str,
         role: str,
-        message: str
+        message: str,
+        user_id: str | None = None,
     ):
         """Append a turn and mark the session as recently active."""
 
@@ -43,7 +45,7 @@ class MemoryService:
         if not self.sessions.exists(session_id):
             raise KeyError(f"unknown session: {session_id}")
 
-        saved = self.conversations.add(session_id, role, message)
+        saved = self.conversations.add(session_id, role, message, user_id=user_id)
 
         self.sessions.touch(session_id)
 

@@ -118,6 +118,33 @@
   }
 }
 
+.chat__new-chat {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--brand);
+  font-size: 22px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--brand-soft);
+    border-color: var(--brand);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
 /* ---- Messages ---- */
 .chat__messages {
   flex: 1;
